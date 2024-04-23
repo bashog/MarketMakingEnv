@@ -5,7 +5,7 @@ from util.types import MessageType
 class Message:
     message_id = 0
     
-    def __init__(self, type:MessageType, content:Any):
+    def __init__(self, type:MessageType, content:Any=None):
         self.type = type
         self.content = content
         self.id = Message.message_id

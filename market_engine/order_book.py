@@ -140,6 +140,8 @@ class OrderBook:
 
     def mid_price(self):
         """Return the mid price of the order book"""
+        if self._best_bid() is None or self._best_ask() is None:
+            return None
         return (self._best_bid() + self._best_ask()) / 2.0
     
     def get_buy_side(self, depth=10):

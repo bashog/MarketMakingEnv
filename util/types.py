@@ -20,7 +20,8 @@ class MessageType(enum.Enum):
     ORDER_CANCELLED = "ORDER_CANCELLED"
     ORDER_EXECUTED = "ORDER_EXECUTED"
     
-    # about data of the order book
-    LAST_TRADE = "LAST_TRADE"
+    # about trading agent
+    REQUEST_MARKET_DATA = "REQUEST_MARKET_DATA"
     MARKET_DATA = "MARKET_DATA"
+    WAKE_UP = "WAKE_UP"
     

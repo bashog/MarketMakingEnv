@@ -31,7 +31,7 @@ class MarketAnalytics:
         self.order_book_state = {}
         self.timestamps = []
         self.prices = []
-        
+
     def order_strength(self, length:int):
         buy_volumes = [self.order_book_state[t].volume_buy() for t in self.timestamps[-length:]]
         sell_volumes = [self.order_book_state[t].volume_sell() for t in self.timestamps[-length:]]
@@ -43,8 +43,7 @@ class MarketAnalytics:
         return (total_buys - total_sells) / total_volume
     
     def realized_volatility(self, length:int):
-        pass
-        
+        pass 
     
     def relative_strength_index(self, length:int):
         if len(self.prices) < length + 1:

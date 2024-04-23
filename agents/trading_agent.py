@@ -1,15 +1,16 @@
 from collections import defaultdict
 from copy import deepcopy
+import pandas as pd
 
-from agent.agent import Agent
+from agents.agent import Agent
 from market_engine.order import LimitOrder, MarketOrder, FilledOrder
 from util.types import Side, MessageType
 from util.message import Message
 
 class TradingAgent(Agent):
     
-    def __init__(self, id:str, random_state:str, starting_cash=100000, log_to_file:bool=False):
-        super().__init__(id, random_state, log_to_file)
+    def __init__(self, id:str, starting_cash=100000):
+        super().__init__(id)
         
         # Agent internal 
         self._order = {}
@@ -19,14 +20,14 @@ class TradingAgent(Agent):
         self._pending_positions = defaultdict(int)
     
     def kernel_start(self, start_time):
-        self.exchange_id = self.kernel.get_exchange_id()
+        self._exchange_id = self._kernel.get_exchange_id()
         super().kernel_start(start_time)
     
     def kernel_stop(self):
         super().kernel_stop()
         # compute final result
     
-    def send_message(self, recipient_id, message, delay=0):
+    def send_message(self, recipient_id, message, delay=pd.Timedelta(seconds=0)):
         return super().send_message(recipient_id, message, delay)
     
     def receive_message(self, current_time, message):
@@ -42,11 +43,35 @@ class TradingAgent(Agent):
                 self._current_positions[filled_order.symbol] -= filled_order.filled_quantity
                 self._cash_balance += filled_order.filled_quantity * filled_order.filled_price
             self._pending_positions[filled_order.symbol] -= filled_order.filled_quantity
+            self._logger.info(f"Agent {self.id} received filled order {filled_order}")
         elif msg_type == MessageType.ORDER_CANCELLED:
             order_id = message.content
             order = self._orders[order_id]
             self._pending_positions[order.symbol] -= order.quantity
             del self._orders[order_id]
+            self._logger.info(f"Agent {self.id} received cancelled order {order}")
+        elif msg_type == MessageType.MARKET_DATA:
+            self.handle_market_data(message.content)
+        elif msg_type == MessageType.WAKE_UP:
+            self.handle_wake_up()
+            
+    def handle_market_data(self, market_data):
+        self._market_data = market_data   
+        self._logger.info(f"Agent {self.id} received market data {market_data}")        
+    
+    def handle_wake_up(self):
+        self._logger.info(f"Agent {self.id} woke up")
+        pass   
+    
+    def request_market_data(self):
+        message = Message(MessageType.REQUEST_MARKET_DATA, self.id)
+        self.send_message(self._exchange_id, message)
+        self._logger.info(f"Agent {self.id} requested market data")
+    
+    def request_wake_up(self):
+        message = Message(MessageType.WAKE_UP, self.id)
+        self.send_message(self.id, message)
+        self._logger.info(f"Agent {self.id} requested wake up")
         
     def place_limit_order(self, symbol:str, quantity:int, side:Side, limit_price:int):
         order = LimitOrder(self.id, self.current_time, symbol, quantity, side, limit_price)
@@ -56,15 +81,17 @@ class TradingAgent(Agent):
         self._pending_positions[symbol] += qty
         # send order to exchange
         message = Message(MessageType.LIMIT_ORDER, order)
-        self.send_message(self.exchange_id, message)
+        self.send_message(self._exchange_id, message)
+        self.logger.info(f"Agent {self.id} placed limit order {order}")
     
     def place_market_order(self, symbol:str, quantity:int, side:Side): 
-        order = MarketOrder(self.id, self.current_time, symbol, quantity, side) 
+        order = MarketOrder(self.id, self._current_time, symbol, quantity, side) 
         self._orders[order.order_id] = deepcopy(order)
         # update pending positions
         qty = order.quantity if order.side == Side.BUY else -order.quantity
         self._pending_positions[symbol] += qty
         # send order to exchange
         message = Message(MessageType.MARKET_ORDER, order)
-        self.send_message(self.exchange_id, message)
+        self.send_message(self._exchange_id, message)
+        self.logger.info(f"Agent {self.id} placed market order {order}")
         

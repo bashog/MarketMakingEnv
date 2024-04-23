@@ -1,0 +1,14 @@
+# Jupyter 
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+
+# Data
+data/BTC-USDT.SPOTBinance.top500bidask.csv
+
+# Logs
+logs/
+
+# VS Code
+*.code-workspace

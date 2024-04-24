@@ -27,6 +27,6 @@ class Agent:
     def receive_message(self, current_time, message):
         self._current_time = current_time
     
-    def send_message (self, recipient_id, message, delay = pd.Timedelta(seconds=0)):
+    def send_message(self, recipient_id, message, delay = pd.Timedelta(seconds=0)):
         self._kernel.send_message(self.id, recipient_id, message, delay = delay)
         

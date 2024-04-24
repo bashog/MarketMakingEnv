@@ -27,7 +27,7 @@ class MarketAnalytics:
     def __init__(self, symbol:str, depth:int):
         self.symbol = symbol
         self.depth = depth
-        self.order_book_snapshots = {}
+        #self.order_book_snapshots = {}
         self.order_book_state = {}
         self.timestamps = []
         self.prices = []
@@ -60,7 +60,7 @@ class MarketAnalytics:
         return rsi
     
     def update(self, timestamp, order_book:OrderBook):
-        self.order_book_snapshots[timestamp] = order_book
+        #self.order_book_snapshots[timestamp] = order_book
         buy_side = order_book.get_buy_side(self.depth)
         sell_side = order_book.get_sell_side(self.depth)
         mid_price = order_book.mid_price()

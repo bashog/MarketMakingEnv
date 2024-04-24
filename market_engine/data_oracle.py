@@ -17,13 +17,13 @@ class DataOracle:
         self.data['internal_timestamp'] = pd.to_datetime(self.data['internal_timestamp'])
         self._timestamps = self.data['internal_timestamp'].unique()
         for timestamp in self._timestamps:
-            orders_at = self.data[self.data['internal_timestamp'] == timestamp]
+            orders_at = self.data[self.data['internal_timestamp'] == timestamp ]
             for index, line in orders_at.iterrows():
                 side = Side[line['side']]
                 price = line['price']
                 volume = line['volume']
                 id = line['qid']
-                order = LimitOrder("", timestamp, self.symbol, volume, side, price, id)
+                order = LimitOrder("Market", timestamp, self.symbol, volume, side, price, id)
                 self._orders[timestamp].append(order)
     
     def pre_send_orders(self):
@@ -31,7 +31,7 @@ class DataOracle:
             orders = self.get_orders(timestamp)
             for order in orders:
                 noise_seconds = random.uniform(0, 1)
-                noise_delay = pd.Timedelta(seconds=noise_seconds)
+                noise_delay = pd.Timedelta(seconds=noise_seconds).round("10ms")
                 self.kernel.send_message("", self.kernel.get_exchange_id(), Message(MessageType.LIMIT_ORDER, order), noise_delay)
         
     def get_orders(self, timestamp):

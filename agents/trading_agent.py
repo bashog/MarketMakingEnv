@@ -53,25 +53,25 @@ class TradingAgent(Agent):
         elif msg_type == MessageType.MARKET_DATA:
             self.handle_market_data(message.content)
         elif msg_type == MessageType.WAKE_UP:
-            self.handle_wake_up()
+            self.handle_wake_up(current_time)
             
     def handle_market_data(self, market_data):
         self._market_data = market_data   
-        self._logger.info(f"Agent {self.id} received market data {market_data}")        
+        #self._logger.info(f"Agent {self.id} received market data at {self._current_time}")        
     
-    def handle_wake_up(self):
-        self._logger.info(f"Agent {self.id} woke up")
-        pass   
+    def handle_wake_up(self, current_time):
+        self._logger.info(f"Agent {self.id} woke up at {self._current_time}")
+        print(f"Agent {self.id} cash balance: {self._cash_balance}")    
     
     def request_market_data(self):
         message = Message(MessageType.REQUEST_MARKET_DATA, self.id)
         self.send_message(self._exchange_id, message)
-        self._logger.info(f"Agent {self.id} requested market data")
+        #self._logger.info(f"Agent {self.id} requested market data")
     
     def request_wake_up(self):
         message = Message(MessageType.WAKE_UP, self.id)
         self.send_message(self.id, message)
-        self._logger.info(f"Agent {self.id} requested wake up")
+        #self._logger.info(f"Agent {self.id} requested wake up")
         
     def place_limit_order(self, symbol:str, quantity:int, side:Side, limit_price:int):
         order = LimitOrder(self.id, self.current_time, symbol, quantity, side, limit_price)

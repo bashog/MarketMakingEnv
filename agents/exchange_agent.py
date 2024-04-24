@@ -21,7 +21,6 @@ class ExchangeAgent(Agent):
         super().kernel_init(kernel, logger)
         self._oracle = self._kernel._oracle
         self._order_book = OrderBook(self.symbol, self, self._logger)
-        self._logger.info(f"Exchange agent {self.id} initialized")
     
     def receive_market_orders(self, current_time, market_orders:List[LimitOrder]):
         self._current_time = current_time
@@ -45,14 +44,15 @@ class ExchangeAgent(Agent):
             self.send_message(message.content, response_message)
             
     def send_message(self, recipient_id, message, delay=pd.Timedelta(seconds=0)):
-        #self.logger.info(f"Exchange agent {self.id} sent message {message} to {recipient_id}")
-        message_type = message.type
-        if message_type in [MessageType.ORDER_ACCEPTED, MessageType.ORDER_CANCELLED, MessageType.ORDER_EXECUTED, MessageType.MARKET_DATA]:
-            super().send_message(recipient_id, message, delay)
+        if recipient_id != "Market":
+            self._logger.info(f"Exchange agent {self.id} sent message {message} to {recipient_id}")
+            message_type = message.type
+            if message_type in [MessageType.ORDER_ACCEPTED, MessageType.ORDER_CANCELLED, MessageType.ORDER_EXECUTED, MessageType.MARKET_DATA]:
+                super().send_message(recipient_id, message, delay)
     
     def update_market_analytics(self):
         self._market_analytics.update(self._current_time, self._order_book)
-        self.log_order_book()
+        #self.log_order_book()
 
     def log_order_book(self, analytics=True):
         self._logger.info(f"Order book at time {self._current_time}")

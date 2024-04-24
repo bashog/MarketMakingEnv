@@ -87,11 +87,11 @@ class OrderBook:
                 # send a message to the agent that placed the order initially
                 maker_filled_order = FilledOrder(current_order.agent_id, current_order.symbol, traded_quantity, current_order.side, price, self.maker_fee)
                 message = Message(MessageType.ORDER_EXECUTED, maker_filled_order)
-                self.owner.send_message(self.owner.id, message)
+                self.owner.send_message(current_order.agent_id, message)
                 # send a message to the agent that placed the incoming order
                 taker_filled_order = FilledOrder(incoming_order.agent_id, incoming_order.symbol, traded_quantity, incoming_order.side, price, self.taker_fee)
                 message = Message(MessageType.ORDER_EXECUTED, taker_filled_order)
-                self.owner.send_message(self.owner.id, message)
+                self.owner.send_message(incoming_order.agent_id, message)
             
             self._total_volumes[price] -= traded_quantity
             self._last_traded_price = price
@@ -181,25 +181,5 @@ class OrderBook:
         bids_str = ' | '.join(bid_details) if bid_details else "No bids"
         asks_str = ' | '.join(ask_details) if ask_details else "No asks"
         last_price_str = f"Last traded price: {self._last_traded_price}$" if self._last_traded_price else "No trades yet"
-
-        return f"OrderBook(Symbol={self.symbol})\nBids: {bids_str}\nAsks: {asks_str}\n{last_price_str}"
-
-        bid_details = []
-        for price in sorted(self._bid_prices, reverse=True):
-            orders = self._levels[price]
-            quantity_at_price = self._total_volumes[price]
-            order_count = len(orders)
-            bid_details.append(f"{price}¢ x {quantity_at_price} (Orders: {order_count})")
-
-        ask_details = []
-        for price in sorted(self._ask_prices):
-            orders = self._levels[price]
-            quantity_at_price = self._total_volumes[price]
-            order_count = len(orders)
-            ask_details.append(f"{price}¢ x {quantity_at_price} (Orders: {order_count})")
-
-        bids_str = ' | '.join(bid_details) if bid_details else "No bids"
-        asks_str = ' | '.join(ask_details) if ask_details else "No asks"
-        last_price_str = f"Last traded price: {self._last_traded_price}¢" if self._last_traded_price else "No trades yet"
 
         return f"OrderBook(Symbol={self.symbol})\nBids: {bids_str}\nAsks: {asks_str}\n{last_price_str}"

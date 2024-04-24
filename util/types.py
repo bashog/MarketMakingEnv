@@ -25,3 +25,6 @@ class MessageType(enum.Enum):
     MARKET_DATA = "MARKET_DATA"
     WAKE_UP = "WAKE_UP"
     
+    def __lt__(self, other):
+        return self.value < other.value
+    

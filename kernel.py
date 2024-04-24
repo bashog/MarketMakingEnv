@@ -78,17 +78,25 @@ class Kernel:
         
     def process_messages(self):
         while not self._messages.empty():
-            message_time, (sender, recipient, message) = self._messages.get()
+            message_time, (recipient, message_type, message) = self._messages.get()
             if message_time <= self._current_time:
+                #self._logger.debug(f"Processing message for {recipient} at {self._current_time}: {message}")
                 self._agents[recipient].receive_message(self._current_time, message)
             else:
-                self._messages.put((message_time, (sender, recipient, message)))
+                #self._logger.debug(f"Reinserting message for {recipient} scheduled at {message_time} back into queue")
+                self._messages.put((message_time, (recipient, message_type, message)))
                 break
     
     def advance_time(self):
+        #self._logger.debug(f"Advancing time from {self._current_time}")
+        #self._logger.debug(f"Status of queue: full? {self._messages.full()}, empty? {self._messages.empty()}, size? {self._messages.qsize()}, maxsize? {self._messages.maxsize}")
         if not self._messages.empty():
             next_message_time = self._messages.queue[0][0]
             self._current_time = min(next_message_time, self._end_time)
+            #self._logger.debug(f"Advanced time to {self._current_time}")
+        else:
+            self._current_time += pd.Timedelta(seconds=0.01)
+            #self._logger.debug(f"Advanced time to {self._current_time} due to no pending messages")
               
     # Communication methods
     def send_message(self, sender:str, recipient:str, message:Message, delay=pd.Timedelta(seconds=0)):

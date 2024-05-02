@@ -13,11 +13,14 @@ class TradingAgent(Agent):
         super().__init__(id)
         
         # Agent internal 
-        self._order = {}
+        self._orders = {}
         self._starting_cash = starting_cash
         self._cash_balance = starting_cash
         self._current_positions = defaultdict(int)
         self._pending_positions = defaultdict(int)
+        self._market_data = None
+        self._hyperparameters = None
+        self._symbol = "BTC"
     
     def kernel_start(self, start_time):
         self._exchange_id = self._kernel.get_exchange_id()
@@ -26,6 +29,12 @@ class TradingAgent(Agent):
     def kernel_stop(self):
         super().kernel_stop()
         # compute final result
+        
+    def load(self):
+        pass
+    
+    def save(self):
+        pass
     
     def send_message(self, recipient_id, message, delay=pd.Timedelta(seconds=0)):
         return super().send_message(recipient_id, message, delay)
@@ -57,24 +66,24 @@ class TradingAgent(Agent):
             
     def handle_market_data(self, market_data):
         self._market_data = market_data   
-        #self._logger.info(f"Agent {self.id} received market data at {self._current_time}")        
+        self._logger.info(f"Agent {self.id} received market data at {self._current_time}")        
     
     def handle_wake_up(self, current_time):
         self._logger.info(f"Agent {self.id} woke up at {self._current_time}")
-        print(f"Agent {self.id} cash balance: {self._cash_balance}")    
+        self._logger.info(f"Agent {self.id} cash balance: {self._cash_balance}")    
     
     def request_market_data(self):
         message = Message(MessageType.REQUEST_MARKET_DATA, self.id)
         self.send_message(self._exchange_id, message)
-        #self._logger.info(f"Agent {self.id} requested market data")
+        self._logger.info(f"Agent {self.id} requested market data")
     
     def request_wake_up(self):
         message = Message(MessageType.WAKE_UP, self.id)
         self.send_message(self.id, message)
-        #self._logger.info(f"Agent {self.id} requested wake up")
+        self._logger.info(f"Agent {self.id} requested wake up")
         
     def place_limit_order(self, symbol:str, quantity:int, side:Side, limit_price:int):
-        order = LimitOrder(self.id, self.current_time, symbol, quantity, side, limit_price)
+        order = LimitOrder(self._id, self._current_time, symbol, quantity, side, limit_price)
         self._orders[order.order_id] = deepcopy(order)
         # update pending positions
         qty = order.quantity if order.side == Side.BUY else -order.quantity
@@ -82,7 +91,7 @@ class TradingAgent(Agent):
         # send order to exchange
         message = Message(MessageType.LIMIT_ORDER, order)
         self.send_message(self._exchange_id, message)
-        self.logger.info(f"Agent {self.id} placed limit order {order}")
+        self._logger.info(f"Agent {self.id} placed limit order {order}")
     
     def place_market_order(self, symbol:str, quantity:int, side:Side): 
         order = MarketOrder(self.id, self._current_time, symbol, quantity, side) 
@@ -94,4 +103,7 @@ class TradingAgent(Agent):
         message = Message(MessageType.MARKET_ORDER, order)
         self.send_message(self._exchange_id, message)
         self.logger.info(f"Agent {self.id} placed market order {order}")
+        
+    def get_market_data(self):
+        return self._market_data
         

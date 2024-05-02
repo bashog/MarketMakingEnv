@@ -52,7 +52,7 @@ class ExchangeAgent(Agent):
     
     def update_market_analytics(self):
         self._market_analytics.update(self._current_time, self._order_book)
-        #self.log_order_book()
+        self.log_order_book()
 
     def log_order_book(self, analytics=True):
         self._logger.info(f"Order book at time {self._current_time}")

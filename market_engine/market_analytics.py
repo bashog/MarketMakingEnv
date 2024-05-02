@@ -69,6 +69,16 @@ class MarketAnalytics:
         self.timestamps.append(timestamp)
         if mid_price is not None:
             self.prices.append(mid_price)
+            
+    def best_bid(self):
+        keys = list(self.order_book_state[self.timestamps[-1]].buy_side.keys())
+        values = list(self.order_book_state[self.timestamps[-1]].buy_side.values())
+        return (keys[0], values[0])
+    
+    def best_ask(self):
+        keys = list(self.order_book_state[self.timestamps[-1]].sell_side.keys())
+        values = list(self.order_book_state[self.timestamps[-1]].sell_side.values())
+        return (keys[0], values[0])
     
     def __str__(self):
         return (f"MarketAnalytics for {self.symbol}: {len(self.timestamps)} timestamps processed, current mid price: {self.prices[-1] if self.prices else 'N/A'}")

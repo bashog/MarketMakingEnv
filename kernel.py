@@ -13,6 +13,8 @@ class Kernel:
         self._logger = setup_logger(log_name) if log_name else DummyLogger()
         self._logger.info("-"*50)
         self._logger.info("Kernel initialized")
+        self._pre_run = False
+        self._last_state = None
         
         # About time
         self._analytics_interval = pd.Timedelta(seconds=0.1) 
@@ -23,9 +25,15 @@ class Kernel:
         self._agents = {}
     
     def register_agent(self, agent):
-        self._agents[agent.id] = agent
+        if agent.id not in self._agents:
+            self._agents[agent.id] = agent
+    
+    def reset(self):
+        self._logger.info("Resetting kernel")
+        self._agents = {}
+        self._logger.info("Kernel reset")    
         
-    def pre_run(self, oracle, exchange_agent, trading_agent):
+    def pre_run(self, oracle, exchange_agent, trading_agent, load_last_state=False):
         # Init Loop Message
         self._messages = queue.PriorityQueue()
         
@@ -58,8 +66,17 @@ class Kernel:
         self.register_agent(self._trading_agent)
         self._logger.info(f"Trading agent {self._trading_agent.id} initialized")
         
-    def run(self, oracle, exchange_agent, trading_agent):
-        self.pre_run(oracle, exchange_agent, trading_agent)
+        self._pre_run = True
+    
+    def train(self, oracle, exchange_agent, trading_agent, num_episodes=1):
+        for episode in range(num_episodes):
+            self._logger.info(f"Starting episode {episode+1}")
+            self.run(oracle, exchange_agent, trading_agent)
+            self._logger.info(f"Finished episode {episode+1}")
+        self._logger.info(f"Training completed")
+        
+    def run(self, oracle, exchange_agent, trading_agent, load_last_state=False):
+        self.pre_run(oracle, exchange_agent, trading_agent, load_last_state)
         
         # Main loop
         while self._current_time <= self._end_time:
